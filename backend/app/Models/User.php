@@ -5,7 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -51,8 +51,8 @@ class User extends Authenticatable
         ];
     }
 
-    public function preference(): HasOne
+    public function prefs(): HasMany
     {
-        return $this->hasOne(Preference::class);
+        return $this->hasMany(Pref::class, 'user_id', );
     }
 }

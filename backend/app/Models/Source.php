@@ -14,6 +14,6 @@ class Source extends Model
 
     public function preferences(): BelongsToMany
     {
-        return $this->belongsToMany(Preference::class);
+        return $this->belongsToMany(Pref::class);
     }
 }

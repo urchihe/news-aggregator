@@ -5,7 +5,7 @@
 
 This News Aggregator application collects and displays news articles by scraping data from multiple external news APIs. Currently, it integrates with three major news APIs: NewsAPI, The Guardian, and The New York Times. The application is designed to be easily extensible, allowing additional APIs to be added by simply updating the config/news_source file.
 
-The front end is built using React and TypeScript, employing Redux and Redux Toolkit for efficient state management. The backend is powered by Laravel and MySQL, utilizing Redis for job queueing to improve the performance and retry efficiency when scraping external APIs. This ensures smooth operation and reliability when handling large volumes of data or retries during network or API failures.
+The front end is built using React, employing Redux and Redux Toolkit for efficient state management. The backend is powered by Laravel and MySQL, utilizing Redis for job queueing to improve the performance and retry efficiency when scraping external APIs. This ensures smooth operation and reliability when handling large volumes of data or retries during network or API failures.
 
 The system is designed for scalability and performance, making it an ideal solution for aggregating and presenting news content from multiple trusted sources.
 
@@ -58,6 +58,7 @@ The system is designed for scalability and performance, making it an ideal solut
    ```bash
     composer install
     php artisan migrate
+    php artisan db:seed
    ```
 1.3 ** Move to Frontend container and install packages:**
 
@@ -67,13 +68,13 @@ The system is designed for scalability and performance, making it an ideal solut
 1.4 ** run the command to scrap fresh data:**
 
    ```bash
-   docker compose exec backend-php bash  &&(inside docker container) php artisan queue:work redis
-  docker compose exec backend-php bash  &&(inside docker container) php artisan news:aggregate
+  docker compose exec backend-php php artisan queue:work redis
+  docker compose exec backend-php php artisan news:aggregate
    ```
 1.5 ** run the command to to build react :**
 
    ```bash
-  docker compose exec frontend bash  &&(inside docker container) yarn build
+  docker compose exec frontend-react yarn build
    ```
 2. **Access the application:**
 
@@ -83,13 +84,13 @@ The system is designed for scalability and performance, making it an ideal solut
 
 ## Available Commands
 
-- `docker-compose up -d`: Starts all services in detached mode.
-- `docker-compose down`: Stops all running services.
-- `docker-compose down -v --remove-orphans`: Stops services, removes volumes, and deletes orphaned containers.
-- `docker-compose up -d --force-recreate --build`: Rebuilds images and recreates all containers (useful for development).
-- `docker-compose exec backend-php bash`: Connects to the backend PHP container's bash shell.
-- `docker-compose exec backend-php composer --run console doctrine:migrate:migrate -n`: Runs database migrations.
-- `docker-compose exec backend-php composer -- dumpautoload`: Updates the Composer autoloader.
+- `docker compose up -d`: Starts all services in detached mode.
+- `docker compose down`: Stops all running services.
+- `docker compose down -v --remove-orphans`: Stops services, removes volumes, and deletes orphaned containers.
+- `docker compose up -d --force-recreate --build`: Rebuilds images and recreates all containers (useful for development).
+- `docker compose exec backend-php bash`: Connects to the backend PHP container's bash shell.
+- `docker compose exec backend-php composer --run console doctrine:migrate:migrate -n`: Runs database migrations.
+- `docker compose exec backend-php composer -- dumpautoload`: Updates the Composer autoloader.
 
 ## Using Redis for Job Queues
 
@@ -105,8 +106,8 @@ This project utilizes Redis as a high-performance, persistent message broker for
 
 ## CI/CD Tools
 
-- `docker-compose exec backend-php composer --run phpmd`: Runs static code analysis with PHPMD.
-- `docker-compose exec backend-php composer --run cs-fix`: Fixes code style issues with PHP CodeSniffer.
-- `docker-compose exec backend-php composer --run cs-check`: Checks code style without fixing.
-- `docker-compose exec backend-php composer --run phpstan`: Runs static type analysis with PHPStan.
-- `docker-compose ci`: Runs all CI tools (code style, static analysis).
+- `docker compose exec backend-php composer --run phpmd`: Runs static code analysis with PHPMD.
+- `docker compose exec backend-php composer --run cs-fix`: Fixes code style issues with PHP CodeSniffer.
+- `docker compose exec backend-php composer --run cs-check`: Checks code style without fixing.
+- `docker compose exec backend-php composer --run phpstan`: Runs static type analysis with PHPStan.
+- `docker compose ci`: Runs all CI tools (code style, static analysis).

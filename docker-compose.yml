@@ -23,6 +23,9 @@ services:
     volumes:
       - ./backend:/var/www/html
       - ./php/local.ini:/usr/local/etc/php/conf.d/custom.ini
+    depends_on:
+      - db
+      - redis
     environment:
       APP_ENV: ${APP_ENV}
       APP_URL: "api.${APP_URL}"
@@ -32,6 +35,17 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      NEWS_API_URL: ${NEWS_API_URL}
+      NEWS_API_KEY: ${NEWS_API_KEY}
+      BBC_API_URL: ${BBC_API_URL}
+      BBC_API_KEY: ${BBC_API_KEY}
+      NEW_YORK_API_URL: ${NEW_YORK_API_URL}
+      NEW_YORK_API_KEY: ${NEW_YORK_API_KEY}
+      THE_GUARDIAN_API_URL: ${THE_GUARDIAN_API_URL}
+      THE_GUARDIAN_API_KEY: ${THE_GUARDIAN_API_KEY}
+      THE_GUARDIAN_API_KEY_2: ${THE_GUARDIAN_API_KEY_2}
+      THE_GUARDIAN_API_KEY_3: ${THE_GUARDIAN_API_KEY_3}
+      THE_GUARDIAN_API_KEY_4: ${THE_GUARDIAN_API_KEY_4}
       DB_CONNECTION: ${DB_CONNECTION}
       QUEUE_CONNECTION: ${QUEUE_CONNECTION}
       REDIS_HOST: ${REDIS_HOST}
@@ -55,29 +69,30 @@ services:
       - app-network
 
   # React Frontend
-  frontend:
+  frontend-react:
     build:
-      context: ./frontend
+      context: ./frontend-react
       dockerfile: Dockerfile
     environment:
-      REACT_API_URL: "api.${APP_URL}"
+      VITE_BACKEND_URL: "api.${APP_URL}"
+    ports:
+      - "5173:5173"
     volumes:
-      - ./frontend:/usr/src/app
+      - ./frontend-react:/usr/src/app
     labels:
-      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend-react.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend-react.entrypoints=web"
+      - "traefik.http.services.frontend-react.loadbalancer.server.port=5173"
     networks:
       - app-network
 
   # MySQL Database
   db:
     image: mysql:8.0
-    container_name: mysql_db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql

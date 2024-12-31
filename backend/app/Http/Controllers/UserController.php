@@ -2,51 +2,37 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pref;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function savePreferences(Request $request): JsonResponse
+   public function index(Request $request)
     {
-        $user = auth()->user();
-
-        // Validate the request inputs
-        $validatedData = $request->validate([
-            'sources' => 'array|exists:sources,id',
-            'categories' => 'array|exists:categories,id',
-        ]);
-
-        // Get or create the preference record for the user
-        $preference = $user->preference()->firstOrCreate(['user_id' => $user->id]);
-
-        // Sync the relationships
-        $preference->sources()->sync($validatedData['sources'] ?? []);
-        $preference->categories()->sync($validatedData['categories'] ?? []);
-
-        return response()->json(['message' => 'Preferences saved successfully']);
-    }
-
-    public function getUserPreferences(): JsonResponse
-    {
-        $user = auth()->user();
-
-        // Get the user's preference
-        $preference = $user?->preference()->first();
-
-        if (!$preference) {
-            return response()->json(['message' => 'No preferences found'], 404);
+        if ($user = Auth::guard('api')->user()) {
+           return $user->load('prefs'); 
         }
 
-        // Retrieve the associated sources and categories
-        $sources = $preference->sources;
-        $categories = $preference->categories;
-
-        return response()->json([
-            'sources' => $sources,
-            'categories' => $categories
-        ]);
+        return null;
     }
 
-
+    public function updatePrefs(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        Pref::query()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'pref_key' => $request->input('pref_key'),
+            ],
+            [
+                 'keywords' => 'user defined',
+                'pref_value' => $request->input('pref_value') ?? '',
+            ]
+        );
+        return [
+            'success' => true,
+        ];
+    }
 }

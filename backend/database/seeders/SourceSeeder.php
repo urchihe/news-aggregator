@@ -17,10 +17,12 @@ class SourceSeeder extends Seeder
 
         // Iterate and insert into the database
         foreach ($sources as $name => $details) {
-            Source::updateOrCreate(
-                ['name' => ucfirst(str_replace('_', ' ', $name))],
-                ['api_url' => $details['url']]
-            );
+            if($details['url']){
+                Source::updateOrCreate(
+                    ['name' => ucfirst(str_replace('_', ' ', $name))],
+                    ['api_url' => $details['url']]
+                );
+            }
         }
     }
 }

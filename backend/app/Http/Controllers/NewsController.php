@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\FetchAndAggregateNewsJob;
+use App\Models\Category;
 use App\Models\Source;
 use Illuminate\Http\Request;
 use App\Services\AggregationService;
@@ -11,6 +12,7 @@ use App\Services\SourceService;
 use App\Services\NewsFetcherService;
 use Illuminate\Http\JsonResponse;
 use App\Models\News;
+use Carbon\Carbon;
 
 class NewsController extends Controller
 {
@@ -41,7 +43,7 @@ class NewsController extends Controller
     public function index(Request $request): JsonResponse
     {
         // Extract filters from the request
-        $filters = $request->only(['keyword', 'category', 'source', 'date']);
+        $filters = $request->only(['keyword', 'categories', 'origins', 'date_range', 'q']);
 
         // Start building the query
         $query = News::query()->with([
@@ -53,25 +55,37 @@ class NewsController extends Controller
         if (isset($filters['q']) && $filters['q']) {
             $query->where(function ($query) use ($filters) {
                 $query->where('title', 'like', '%' . $filters['q'] . '%')
-                    ->orWhere('content', 'like', '%' . $filters['q'] . '%');
+                    ->orWhere('description', 'like', '%' . $filters['q'] . '%');
             });
         }
 
-        // Apply the category filter
-        if (isset($filters['category']) && $filters['category']) {
-            $query->whereHas('categories', function ($query) use ($filters) {
-                $query->where('categories.id', $filters['category']);
+        if (isset($filters['categories']) && $filters['categories']) {
+           $categories = array_map('trim', explode(',', $filters['categories'])); 
+            $query->whereHas('category', function ($query) use ($categories) {
+                $query->whereIn('name', $categories);
             });
         }
 
-        // Apply the source filter
-        if (isset($filters['source']) && $filters['source']) {
-            $query->where('source_id', $filters['source']);
+        if (isset($filters['origins']) && $filters['origins']) {
+           $sources = array_map('trim', explode(',', $filters['origins'])); 
+            $query->whereHas('source', function ($query) use ($sources) {
+                $query->whereIn('name', $sources);
+            });
         }
 
-        // Apply the date filter (if provided)
-        if (isset($filters['date']) && $filters['date']) {
-            $query->whereDate('published_at', '=', $filters['date']);
+                // Apply the date range filter if provided as a comma-separated string
+        if (isset($filters['date_range']) && $filters['date_range']) {
+            $timestamps = explode(',', $filters['date_range']);
+
+            if (count($timestamps) === 2) {
+                $startTimestamp = trim($timestamps[0]);
+                $endTimestamp = trim($timestamps[1]);
+
+                $query->whereBetween('published_at', [
+                    Carbon::createFromTimestamp($startTimestamp)->toDateTimeString(),
+                    Carbon::createFromTimestamp($endTimestamp)->toDateTimeString(),
+                ]);
+            }
         }
 
         // Apply the default ordering by published_at (descending)
@@ -82,27 +96,22 @@ class NewsController extends Controller
     }
 
 
-    public function personalizedFeed(): JsonResponse
+    public function personalizedFeed(): array
     {
-        $user = auth()->user();
+         $categories = Category::query()
+            ->distinct()
+            ->get()
+            ->pluck('name');
 
-        // Get the user's preferences
-        $preferences = $user?->preference;
+        $origins = Source::query()
+            ->distinct()
+            ->get()
+            ->pluck('name');
 
-        if (!$preferences) {
-            return response()->json(['message' => 'No preferences found'], 404);
-        }
-
-        // Fetch the user's preferred sources and categories via pivot table relationships
-        $preferredSourceIds = $preferences->sources->pluck('id')->toArray();
-        $preferredCategoryIds = $preferences->categories->pluck('id')->toArray();
-
-        // Query the news based on the user's preferences
-        $news = News::whereIn('source_id', $preferredSourceIds)
-            ->whereIn('category_id', $preferredCategoryIds)
-            ->paginate(10);
-
-        return response()->json($news);
+        return [
+            'categories' => $categories,
+            'origins' => $origins,
+        ];
     }
 
 
