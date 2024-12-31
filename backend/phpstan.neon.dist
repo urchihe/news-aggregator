@@ -1,0 +1,16 @@
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    level: max
+    inferPrivatePropertyTypeFromConstructor: true
+    paths:
+        - app
+    ignoreErrors:
+        # Add errors to ignore here
+        # Only ignore errors that are real false positives :)
+        - '#missingType\.iterableValue#'
+    stubFiles: []
+    universalObjectCratesClasses: []
+    excludePaths:
+        - %currentWorkingDirectory%/app/Providers/*

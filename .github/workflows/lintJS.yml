@@ -1,0 +1,33 @@
+name:  JSLint
+on: [push]
+jobs:
+ lint:
+   runs-on: ubuntu-latest
+   steps:
+     - name: Checkout
+       uses: actions/checkout@v4
+       with:
+         fetch-depth: 2
+
+     - name: Setup Node.js 20.x
+       uses: actions/setup-node@v3
+       with:
+         node-version: 19.x
+
+     - name: Install dependencies
+       run: npm install --force
+
+     - name: ESLint Check
+       run: yarn lint
+
+     - name: Scss Check
+       run: yarn slint
+
+     - name: Send Coverage
+       uses: codecov/codecov-action@v3
+       with:
+         token: ${{ secrets.CODECOV_TOKEN }}
+         files: coverage/lcov.info
+         name: github-actions-codecov-${{ matrix.operating-system }}
+         fail_ci_if_error: false
+         verbose: true
