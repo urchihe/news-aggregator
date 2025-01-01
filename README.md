@@ -27,7 +27,7 @@ The system is designed for scalability and performance, making it an ideal solut
    Create a `.env` file in the project root directory by copying the `.env.example` file:
 
    ```bash
-   cp .env.example .env
+   cp .env.dist .env
    ```
 
 3. **Replace the placeholder values in `.env` with your actual configuration:**
@@ -41,7 +41,7 @@ The system is designed for scalability and performance, making it an ideal solut
     - `REDIS_HOST` (Redis server host)
     - `REDIS_PORT` (Redis server port)
     - `DOMAIN` (your domain name)
-    - `DB_ROOT_PASSWORD` (MySQL root password)
+    - `DB_ROOT_PASSWORD` (MySQL root password) please add all the news url and keys variable to the .env
 
 ## Running the Application
 
